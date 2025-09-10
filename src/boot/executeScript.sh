@@ -26,6 +26,6 @@ shellNS_main_boot_executeScript() {
   fi
 
   . "${tgtFile}"
-  $tgtFunctionName "$@"; setStatus "$?"
+  $tgtFunctionName "$@"; statusSet "$?"
   unset "${tgtFunctionName}"
 }

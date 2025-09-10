@@ -4,12 +4,17 @@
 # Download and load dependencies to current shell context.
 #
 # @param bool $1
-# If **1** load all dependencies after download.
+# When **1** will download all dependencies in standalone mode.
 #
 # @return status+string
 shellNS_main_boot_dependencies() {
-  if [[ "$(declare -p "SHELLNS_MAIN_DEPENDENCIES" 2> /dev/null)" != "declare -A"* ]] || [ "${#SHELLNS_MAIN_DEPENDENCIES[@]}" == "0" ]; then
+  if [[ "$(declare -p "SHELLNS_MAIN_DEPENDENCIES_REPO_LIST" 2> /dev/null)" != "declare -A"* ]] || [ "${#SHELLNS_MAIN_DEPENDENCIES_REPO_LIST[@]}" == "0" ]; then
     return "0"
+  fi
+
+  local boolLoadDependencies="${1}"
+  if [ "${boolLoadDependencies}" != "1" ]; then
+    boolLoadDependencies="0"
   fi
 
 
@@ -20,7 +25,7 @@ shellNS_main_boot_dependencies() {
 
   #
   # Download dependencies
-  for pkgFileName in "${!SHELLNS_MAIN_DEPENDENCIES[@]}"; do
+  for pkgFileName in "${!SHELLNS_MAIN_DEPENDENCIES_REPO_LIST[@]}"; do
     pgkLoadStatus="${SHELLNS_MAIN_PACKAGE_LOAD_STATUS[${pkgFileName}]}"
     if [ "${pgkLoadStatus}" == "" ]; then pgkLoadStatus="0"; fi
     if [ "${pgkLoadStatus}" == "ready" ] || [ "${pgkLoadStatus}" -ge "1" ]; then
@@ -28,7 +33,7 @@ shellNS_main_boot_dependencies() {
     fi
 
     if [ ! -f "${pkgFileName}" ]; then
-      pkgSourceURL="${SHELLNS_MAIN_DEPENDENCIES[${pkgFileName}]}"
+      pkgSourceURL="${SHELLNS_MAIN_DEPENDENCIES_REPO_LIST[${pkgFileName}]}"
 
       curl -o "${pkgFileName}" "${pkgSourceURL}"
       if [ ! -f "${pkgFileName}" ]; then
@@ -42,15 +47,15 @@ shellNS_main_boot_dependencies() {
       fi
     fi
 
-    chmod +x "${pkgFileName}"; setReturn $?
-    if [ "$?" != "0" ]; then
+    chmod +x "${pkgFileName}"; statusSet "$?"
+    if [ $(statusGet) != "0" ]; then
       local strMsg=""
       strMsg+="Could not give execute permission to script:\n"
       strMsg+="FILE: **${pkgFileName}**\n\n"
       strMsg+="This execution was aborted."
 
       shellNS_main_boot_dialog "error" "${strMsg}"
-      return "1"
+      return $(statusGet)
     fi
 
     SHELLNS_MAIN_PACKAGE_LOAD_STATUS["${pkgFileName}"]="1"
@@ -60,22 +65,22 @@ shellNS_main_boot_dependencies() {
 
   #
   # Load dependencies
-  if [ "${1}" == "1" ]; then
-    for pkgFileName in "${!SHELLNS_MAIN_DEPENDENCIES[@]}"; do
+  if [ "${boolLoadDependencies}" == "1" ]; then
+    for pkgFileName in "${!SHELLNS_MAIN_DEPENDENCIES_REPO_LIST[@]}"; do
       pgkLoadStatus="${SHELLNS_MAIN_PACKAGE_LOAD_STATUS[${pkgFileName}]}"
       if [ "${pgkLoadStatus}" == "ready" ]; then
         continue
       fi
 
-      . "${pkgFileName}"
-      if [ "$?" != "0" ]; then
+      . "${pkgFileName}"; statusSet "$?"
+      if [ $(statusGet) != "0" ]; then
         local strMsg=""
         strMsg+="An unexpected error occurred while load script:\n"
         strMsg+="FILE: **${pkgFileName}**\n\n"
         strMsg+="This execution was aborted."
 
         shellNS_main_boot_dialog "error" "${strMsg}"
-        return "1"
+        return $(statusGet)
       fi
 
       SHELLNS_MAIN_PACKAGE_LOAD_STATUS["${pkgFileName}"]="ready"

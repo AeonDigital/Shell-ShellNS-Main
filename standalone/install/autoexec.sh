@@ -5,4 +5,4 @@ shellNS_main_boot_dependencies "1"
 unset shellNS_standalone_install_set_dependency
 unset shellNS_main_boot_dependencies
 unset shellNS_main_boot_dialog
-unset SHELLNS_MAIN_DEPENDENCIES
+unset SHELLNS_MAIN_DEPENDENCIES_REPO_LIST

@@ -11,13 +11,12 @@ declare -g SHELLNS_MAIN_DIR_PATH="${XDG_DATA_HOME}/shellns"
 if [ "${XDG_DATA_HOME}" == "" ]; then
   declare -g SHELLNS_MAIN_DIR_PATH="${HOME}/.shellns"
 fi
-readonly SHELLNS_MAIN_DIR_PATH
 
 
 #
 # Register the main interface locale.
 if [ "${SHELLNS_MAIN_INTERFACE_LOCALE}" == "" ]; then
-  readonly SHELLNS_MAIN_INTERFACE_LOCALE="en-us"
+  declare -g SHELLNS_MAIN_INTERFACE_LOCALE="en-us"
 fi
 
 #
@@ -38,30 +37,6 @@ declare -gA SHELLNS_MAIN_MAPP_NAMESPACE_TO_FUNCTION
 
 
 
-#
-# Mantain the last registered result status.
-unset SHELLNS_LAST_RETURN_STATUS
-declare -g SHELLNS_LAST_RETURN_STATUS=""
-#
-# Store the result status for lazy comparison.
-#
-# @param int $1
-# Status code to store.
-#
-# @return void
-statusSet() {
-  SHELLNS_LAST_RETURN_STATUS="${1}"
-}
-#
-# Get the last stored status code.
-#
-# @return int
-statusGet() {
-  echo -ne "${SHELLNS_LAST_RETURN_STATUS}"
-}
-
-
-
 
 
 #
@@ -75,28 +50,52 @@ declare -gA SHELLNS_MAIN_PACKAGE_LOAD_STATUS
 
 
 #
+# Create dependencies list.
+unset SHELLNS_MAIN_DEPENDENCIES_REPO_LIST
+declare -gA SHELLNS_MAIN_DEPENDENCIES_REPO_LIST
+
+
+
+#
 # Register external dependencies.
 SHELLNS_MAIN_EXTERNAL_DEPENDENCIES["curl"]="-"
-
-
 
 #
 # Inserts a new entry into the dependency list.
 #
 # @param string $1
-# Package name.
+# URL to the Git repository of the package.
 #
 # @param string $2
-# Short name.
+# Vendor name.
+#
+# @param string $3
+# Package name.
+#
+# @param string $3
+# Main package namespace.
 #
 # @return void
-shellNS_standalone_install_set_dependency() {
-  local strDownloadFileName="shellns_${2,,}_standalone.sh"
-  local strPkgStandaloneURL="https://raw.githubusercontent.com/AeonDigital/${1}/refs/heads/main/standalone/package.sh"
-  SHELLNS_MAIN_DEPENDENCIES["${strDownloadFileName}"]="${strPkgStandaloneURL}"
-}
+shellNS_core_register_dependency() {
+  echo "w"
+  # local strPkgURL="${1}"
+  # if [ "${strPkgURL}" == "" ]; then
+  #   messageError "Invalid package URL!"
+  #   return "1"
+  # fi
 
-#
-# Create dependencies list.
-unset SHELLNS_MAIN_DEPENDENCIES
-declare -gA SHELLNS_MAIN_DEPENDENCIES
+  # local strPkgVendor="${2}"
+  # if [ "${strPkgVendor}" == "" ]; then
+  #   messageError "Invalid package vendor!"
+  #   return "1"
+  # fi
+
+  # local strPkgName="${3}"
+  # if [ "${strPkgName}" == "" ]; then
+  #   messageError "Invalid package name!"
+  #   return "1"
+  # fi
+  
+  # local strPkgKey="${2}_${3}"
+  # SHELLNS_MAIN_DEPENDENCIES_REPO_LIST["${strPkgKey}"]="${strPkgURL}"
+}

@@ -50,10 +50,10 @@ objectCheckTypeInDefinitionMode() {
 # return status
 objectCheckTypePropertyExists() {
   local typeObject="${1}"
-  local propertyName="${2}"
-  local registeredName="${typeObject}_${propertyName}"
+  local typePropName="${2}"
+  local regTypePropName="${typeObject}_${typePropName}"
 
-  if [ "${SHELLNS_MAIN_OBJECT_TYPE_PROPERTIES[${registeredName}]}" == "-" ]; then
+  if [ "${SHELLNS_MAIN_OBJECT_TYPE_PROPERTIES[${regTypePropName}]}" == "-" ]; then
     return "0"
   fi
 
@@ -74,10 +74,10 @@ objectCheckTypePropertyExists() {
 # return status
 objectCheckTypeMethodExists() {
   local typeObject="${1}"
-  local methodName="${2}"
-  local registeredName="${typeObject}_${methodName}"
+  local typeMethodName="${2}"
+  local regTypeMethodName="${typeObject}_${typeMethodName}"
 
-  if [ "${SHELLNS_MAIN_OBJECT_TYPE_METHODS[${registeredName}]}" == "-" ]; then
+  if [ "${SHELLNS_MAIN_OBJECT_TYPE_METHODS[${regTypeMethodName}]}" == "-" ]; then
     return "0"
   fi
 
@@ -135,14 +135,14 @@ objectCheckPropertyValue() {
 # return status
 objectCheckInstanceExists() {
   local typeObject="${1}"
-  local instanceName="${2}"
+  local typeInstanceName="${2}"
 
   if [ "${SHELLNS_MAIN_OBJECT_TYPES[${typeObject}]}" == "" ]; then
     return "1"
   fi
 
-  local registerName="${typeObject}_${instanceName}"
-  if [ "${SHELLNS_MAIN_OBJECT_INSTANCES[${registerName}]}" == "" ]; then
+  local regTypeInstanceName="${typeObject}_${typeInstanceName}"
+  if [ "${SHELLNS_MAIN_OBJECT_INSTANCES[${regTypeInstanceName}]}" == "" ]; then
     return "1"
   fi
 

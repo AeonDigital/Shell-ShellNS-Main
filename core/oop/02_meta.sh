@@ -25,9 +25,9 @@ objectMetaProperty() {
     return "1"
   fi
 
-  local propertyName="${2}"
-  if ! objectCheckTypePropertyExists "${typeObject}" "${propertyName}"; then
-    messageError "Property is not defined for object type | '${typeObject}.${propertyName}'"
+  local typePropName="${2}"
+  if ! objectCheckTypePropertyExists "${typeObject}" "${typePropName}"; then
+    messageError "Property is not defined for object type | '${typeObject}.${typePropName}'"
     return "1"
   fi
 
@@ -36,12 +36,12 @@ objectMetaProperty() {
     return "1"
   fi
 
-  local registeredName="${typeObject}_${propertyName}"
+  local regTypePropName="${typeObject}_${typePropName}"
 
   local -n tmpMetaPropArray="${3}"
-  tmpMetaPropArray["name"]="${propertyName}"
-  tmpMetaPropArray["type"]="${SHELLNS_MAIN_OBJECT_TYPE_PROPERTIES["${registeredName}_type"]}"
-  tmpMetaPropArray["default"]="${SHELLNS_MAIN_OBJECT_TYPE_PROPERTIES["${registeredName}_default"]}"
+  tmpMetaPropArray["name"]="${typePropName}"
+  tmpMetaPropArray["type"]="${SHELLNS_MAIN_OBJECT_TYPE_PROPERTIES["${regTypePropName}_type"]}"
+  tmpMetaPropArray["default"]="${SHELLNS_MAIN_OBJECT_TYPE_PROPERTIES["${regTypePropName}_default"]}"
 
   return "0"
 }
@@ -99,68 +99,188 @@ objectMetaTypeGetProperties() {
     messageError "Return array not exists or is not an array | '${2}'"
     return "1"
   fi
-  local -n arrPropTypes="${2}"
-  arrPropTypes=()
+  local -n metaArrTypePropTypes="${2}"
+  metaArrTypePropTypes=()
 
   if ! varIsArray "${3}"; then
     messageError "Return array not exists or is not an array | '${3}'"
     return "1"
   fi
-  local -n arrPropNames="${3}"
-  arrPropNames=()
+  local -n metaArrTypePropNames="${3}"
+  metaArrTypePropNames=()
 
   if ! varIsArray "${4}"; then
     messageError "Return array not exists or is not an array | '${4}'"
     return "1"
   fi
-  local -n arrPropDefault="${4}"
-  arrPropDefault=()
+  local -n metaArrTypePropDefault="${4}"
+  metaArrTypePropDefault=()
 
 
-  local intMaxLengthPropType="0"
-  local intMaxLengthPropName="0"
+  local metaIntMaxLengthPropType="0"
+  local metaIntMaxLengthPropName="0"
   if [ "${5}" != "" ] && [ "${6}" != "" ]; then
-    local -n intMaxLengthPropType="${5}"
-    local -n intMaxLengthPropName="${6}"
+    local -n metaIntMaxLengthPropType="${5}"
+    local -n metaIntMaxLengthPropName="${6}"
   fi
 
 
-  local objPropertiesNames="${SHELLNS_MAIN_OBJECT_TYPE_PROPERTIES[${typeObject}]}"
-  if [ "${objPropertiesNames}" == "" ]; then
-    messageError "The given object type has no properties defined | '${typeObject}'"
-    return "1"
+  local metaObjPropertiesNames="${SHELLNS_MAIN_OBJECT_TYPE_PROPERTIES[${typeObject}]}"
+  if [ "${metaObjPropertiesNames}" == "" ]; then
+    return "0"
   fi
 
-  local -a arrPropertiesNames=()
-  IFS=';' read -r -a arrPropertiesNames <<< "${objPropertiesNames}"
-  unset IFS
+  local -a metaArrPropertiesNames=()
+  IFS=';' read -r -a metaArrPropertiesNames <<< "${metaObjPropertiesNames}"
 
 
 
-  local propertyType=""
-  local propertyName=""
-  local propertyDefault=""
+  local typePropType=""
+  local typePropName=""
+  local typePropDefault=""
   local -A assocPropertyMeta
 
-  for propertyName in "${arrPropertiesNames[@]}"; do
-    objectMetaProperty "${typeObject}" "${propertyName}" "assocPropertyMeta"; statusSet "$?"
+  for typePropName in "${metaArrPropertiesNames[@]}"; do
+    objectMetaProperty "${typeObject}" "${typePropName}" "assocPropertyMeta"; statusSet "$?"
     if [ $(statusGet) == "0" ]; then
-      propertyType="${assocPropertyMeta[type]}"
-      propertyName="${assocPropertyMeta[name]}"
-      propertyDefault="${assocPropertyMeta[default]}"
+      typePropType="${assocPropertyMeta[type]}"
+      typePropName="${assocPropertyMeta[name]}"
+      typePropDefault="${assocPropertyMeta[default]}"
 
-      arrPropTypes+=("${propertyType}")
-      arrPropNames+=("${propertyName}")
-      arrPropDefault+=("${propertyDefault}")
+      metaArrTypePropTypes+=("${typePropType}")
+      metaArrTypePropNames+=("${typePropName}")
+      metaArrTypePropDefault+=("${typePropDefault}")
 
-      if [ "${#propertyType}" -gt "${intMaxLengthPropType}" ]; then
-        intMaxLengthPropType="${#propertyType}"
+      if [ "${#typePropType}" -gt "${metaIntMaxLengthPropType}" ]; then
+        metaIntMaxLengthPropType="${#typePropType}"
       fi
-      if [ "${#propertyName}" -gt "${intMaxLengthPropName}" ]; then
-        intMaxLengthPropName="${#propertyName}"
+      if [ "${#typePropName}" -gt "${metaIntMaxLengthPropName}" ]; then
+        metaIntMaxLengthPropName="${#typePropName}"
       fi
     fi
   done
 
   return "0"
 }
+
+
+
+
+
+#
+# Get meta information about all methods of an object type.
+#
+# @param string $1
+# Type of the object.
+#
+# @param string $2
+# Name of the return array for method names.
+# The target array will contain:
+# - [0] => method 1
+# - [1] => method 2
+# - [2] => method 3
+# - ... 
+#
+# @return status+string
+objectMetaTypeGetMethods() {
+  local typeObject="${1}"
+  
+  if ! objectCheckTypeExists "${typeObject}"; then
+    messageError "Object type is not defined | '${typeObject}'"
+    return "1"
+  fi
+
+  if ! varIsArray "${2}"; then
+    messageError "Return array not exists or is not an array | '${2}'"
+    return "1"
+  fi
+  local -n metaArrTypeMethodNames="${2}"
+  metaArrTypeMethodNames=()
+
+
+  local objMethodNames="${SHELLNS_MAIN_OBJECT_TYPE_METHODS[${typeObject}]}"
+  if [ "${objMethodNames}" == "" ]; then
+    messageError "The given object type has no methods defined | '${typeObject}'"
+    return "0"
+  fi
+
+  IFS=';' read -r -a metaArrTypeMethodNames <<< "${objMethodNames}"
+
+  return "0"
+}
+
+
+
+
+
+#
+# Retrieve the given objects with the property name of the object type and
+# its current values.
+#
+# @param string $1
+# Type of the object.
+#
+# @param string $2
+# Name of the instance.
+#
+# @param string $3
+# Name of the return array for property names.
+# The target array will contain:
+# - [0] => property name 1
+# - [1] => property name 2
+# - [2] => property name 3
+# - ... 
+#
+# @param string $4
+# Name of the return array with the property values.
+# The target array will contain:
+# - [0] => property value 1
+# - [1] => property value 2
+# - [2] => property value 3
+# - ... 
+#
+# @return status+string
+objectMetaInstanceProperties() {
+  local typeObject="${1}"
+  local typeInstanceName="${2}"
+
+  if ! objectCheckTypeExists "${typeObject}"; then
+    messageError "Object type is not defined | '${typeObject}'"
+    return "1"
+  fi
+
+  if ! objectCheckInstanceExists "${typeObject}" "${typeInstanceName}"; then
+    messageError "Object type instance is not defined | '${typeObject}.${typeInstanceName}'"
+    return "1"
+  fi
+
+  if ! varIsArray "${3}"; then
+    messageError "Return array not exists or is not an array | '${3}'"
+    return "1"
+  fi
+  local -n metaArrInstancePropNames="${3}"
+  metaArrInstancePropNames=()
+
+  if ! varIsArray "${4}"; then
+    messageError "Return array not exists or is not an array | '${4}'"
+    return "1"
+  fi
+  local -n metaArrInstancePropValues="${4}"
+  metaArrInstancePropValues=()
+
+
+
+  local metaObjPropertiesNames="${SHELLNS_MAIN_OBJECT_TYPE_PROPERTIES[${typeObject}]}"
+  if [ "${metaObjPropertiesNames}" == "" ]; then
+    return "0"
+  fi
+  IFS=';' read -r -a metaArrInstancePropNames <<< "${metaObjPropertiesNames}"
+
+  local typePropName=""
+  for typePropName in "${metaArrInstancePropNames[@]}"; do
+    metaArrInstancePropValues+=("${SHELLNS_MAIN_OBJECT_INSTANCES_VALUES[${typeObject}_${typeInstanceName}_${typePropName}]}")
+  done
+
+  return "0"
+}
+

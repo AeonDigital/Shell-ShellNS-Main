@@ -42,7 +42,7 @@ shellNS_standalone_uninstall() {
   shellNS_standalone_install_set_dependency "Shell-ShellNS-UTest" "utest"
 
   local pkgFileName=""
-  for pkgFileName in "${!SHELLNS_MAIN_DEPENDENCIES[@]}"; do
+  for pkgFileName in "${!SHELLNS_MAIN_DEPENDENCIES_REPO_LIST[@]}"; do
     if [ -f "${pkgFileName}" ]; then
       rm "${pkgFileName}"
       if [ -f "${pkgFileName}" ]; then

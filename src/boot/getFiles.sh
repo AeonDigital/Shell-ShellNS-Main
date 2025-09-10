@@ -12,7 +12,7 @@
 # the package.
 #
 # @param string $3
-# Type of execution. Choose one of : **load**, **export** or  **utests**
+# Type of execution. 
 #
 # @return array
 shellNS_main_boot_getFiles() {

@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 
 #
-# Loads the dependencies and starts the package in the context of the shell.
+# Loads the dependencies currently registered and all 
+# files from the current package.
 #
 # @param dirExistentFullPath $1
 # Path to the root directory of the current package.
 #
 # @param bool $2
-# When **1** will run this package in **local** mode and therefore will 
-# download all dependencies in stangalone mode.
+# When **1** will download all dependencies in stangalone mode.
 #
 # @return void
-shellNS_main_package_load() {
+shellNS_main_boot_packageLoad() {
   local pathToCurrentPackageDir="${1}"
+  local isRunningInStandaloneMode="${2}"
 
-  if [ "${2}" == "1" ]; then
+  if [ "${isRunningInStandaloneMode}" == "1" ]; then
     shellNS_main_boot_dependencies "1"
   fi
 
