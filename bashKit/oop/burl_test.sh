@@ -4,10 +4,11 @@ burlLiveTest() {
   #
   # Test
   objectInstanceNew burl aeon
-  echo ""
-  echo "================================="
-  echo ":: TEST _ DEFAULT VALUES"
-  burl aeon exec setURL ""
+
+
+  # echo ""
+  # echo "================================="
+  # echo ":: TEST _ DEFAULT VALUES"
   echo -ne "        headers : "; burl aeon exec printHeaders
   echo -ne "           verb : "; burl aeon get verb
   echo -ne "       protocol : "; burl aeon get protocol
@@ -23,10 +24,10 @@ burlLiveTest() {
   echo ""
   echo "================="
   echo ":: TEST _ HEADERS"
-  burl aeon set header set "Connection" "close"
+  burl aeon set header set "ANOTHER" "test header ee"
   burl aeon set header set "Host" "domain.com"
   echo -ne "        headers : "; burl aeon exec printHeaders
-  echo -ne "    header Host : "; burl aeon get header "Host"
+  echo -ne "    header Host : "; burl aeon get header "HOST"
   burl aeon set header clear
   echo -ne "        headers : "; burl aeon exec printHeaders
 

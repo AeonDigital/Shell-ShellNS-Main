@@ -247,3 +247,43 @@ stringPaddingRRaw() {
 stringRemoveGlyphs() {
   echo -ne "${1}" | iconv --from-code="UTF8" --to-code="ASCII//TRANSLIT"
 }
+
+
+
+
+
+#
+# Capitalizes the first letter of a string and all subsequent ones found after 
+# the indicated separator..
+#
+# @param string $1
+# String that will be changed.
+#
+# @param char $2
+# Character used as a separator to indicate that, after it, the first letter 
+# should be capitalized.
+# If empty, will use space char like default value.
+#
+# @return string
+stringCapitalizeFirst() {
+  local str="${1}"
+  local sep=$(stringTrim "${2}")
+  
+  if [ "${sep}" == "" ]; then
+    sep=" "
+  else
+    sep="${sep:0:1}"
+  fi
+
+  local strReturn=""
+  local -a arrParts=()
+  IFS="${sep}" read -ra arrParts <<< "${str}"
+  
+  local strPart=""
+  for strPart in "${arrParts[@]}"; do
+    strReturn+="${strPart^}${sep}"
+  done
+
+  strReturn="${strReturn%-}"
+  echo "${strReturn}"
+}

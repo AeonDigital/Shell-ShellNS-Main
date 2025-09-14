@@ -7,9 +7,14 @@
 # @param string $1
 # Type of the object.
 #
+# @param function $2
+# [optional] Constructor.
+# Will run after each initializated instance.
+#
 # return status+string
 objectTypeCreate() {
   local typeObject="${1}"
+  local typeConstructor="${2}"
 
   if [ "${typeObject}" == "" ]; then
     messageError "Invalid object type!"
@@ -26,10 +31,15 @@ objectTypeCreate() {
     return "1"
   fi
 
+  if [ "${typeConstructor}" != "" ] && ! varIsFunction "${typeConstructor}" ]; then
+    messageError "Invalid constructor | '${typeConstructor}'; expected function."
+  fi
+
 
   SHELLNS_MAIN_OBJECT_TYPES["${typeObject}"]="-"
   SHELLNS_MAIN_OBJECT_TYPE_METHODS["${typeObject}"]=""
   SHELLNS_MAIN_OBJECT_TYPE_PROPERTIES["${typeObject}"]=""
+  SHELLNS_MAIN_OBJECT_TYPE_CONSTRUCTORS["${typeObject}"]="${typeConstructor}"
 
   objectTypeCreateStart "${typeObject}"
 
@@ -143,11 +153,11 @@ objectTypeSetProperty() {
     fi
   fi
 
-  if [ "${typePropSetFn}" != "" ] && ! functionExists "${typePropSetFn}"; then
+  if [ "${typePropSetFn}" != "" ] && ! varIsFunction "${typePropSetFn}"; then
     messageError "Invalid set method (not a function) | '${typePropSetFn}'"
     return "1"
   fi
-  if [ "${typePropGetFn}" != "" ] && ! functionExists "${typePropGetFn}"; then
+  if [ "${typePropGetFn}" != "" ] && ! varIsFunction "${typePropGetFn}"; then
     messageError "Invalid get method (not a function) | '${typePropGetFn}'"
     return "1"
   fi
@@ -207,7 +217,7 @@ objectTypeSetMethod() {
     return "1"
   fi
 
-  if ! functionExists "${typeMethodFunction}"; then
+  if ! varIsFunction "${typeMethodFunction}"; then
     messageError "Invalid function | '${typeMethodFunction}'"
     return "1"
   fi

@@ -296,13 +296,13 @@ varAssocClear() {
 
 
 #
-# Checks if a function exists.
+# Checks if the given name is a function.
 #
 # @param string $1
 # Name of the function.
 #
 # return status
-functionExists() {
+varIsFunction() {
   local functionName="${1}"
 
   if [ "${functionName}" == "" ] || ! declare -F "${functionName}" &>/dev/null; then
