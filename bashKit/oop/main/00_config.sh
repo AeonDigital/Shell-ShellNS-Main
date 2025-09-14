@@ -28,6 +28,13 @@ SHELLNS_MAIN_OBJECT_ALLOWED_PROPERTIES_TYPES+=("assoc")
 
 
 #
+# Assoc array thats contain all constructors defined for all types of objects.
+#
+unset SHELLNS_MAIN_OBJECT_TYPE_CONSTRUCTORS
+declare -gA SHELLNS_MAIN_OBJECT_TYPE_CONSTRUCTORS
+
+
+#
 # Assoc array thats contain all properties defined for all types of objects.
 #
 # Each new object gains an entry in this array with its own name, and in this 

@@ -7,7 +7,7 @@ bashKitLoad() {
   local tmpCurrentDirectoryPath="$(tmpPath=$(dirname "${BASH_SOURCE[0]}"); realpath "${tmpPath}")"
 
   local it=""
-  for it in $(find "${tmpCurrentDirectoryPath}" -mindepth 2 -type f -name "*.sh"); do
+  for it in $(find "${tmpCurrentDirectoryPath}" -mindepth 2 -type f -name "*.sh" | sort); do
     . "${it}"
   done
 

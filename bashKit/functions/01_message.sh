@@ -32,7 +32,7 @@ messageShow() {
   local msgText="${2}"
 
   if [ "${msgType}" == "" ] || [ "${msgText}" == "" ]; then
-    echo "[ x ] Error: Invalid message type or text!"
+    echo "[ x ] Error: Invalid message type or text!" >&2
     return "1"
   fi
 
@@ -40,11 +40,18 @@ messageShow() {
   local msgPrefix="${SHELLNS_CORE_MESSAGE_PREFIX[${msgType}]}"
 
   if [ "${msgSymbol}" == "" ] || [ "${msgPrefix}" == "" ]; then
-    echo "[ x ] Error: Unknown message type '${msgType}'!"
+    echo "[ x ] Error: Unknown message type '${msgType}'!" >&2
     return "1"
   fi
 
-  echo "${msgSymbol} ${msgPrefix}: ${msgText}"
+
+  if [ "${msgType}" == "error" ]; then
+    echo "${msgSymbol} ${msgPrefix}: ${msgText}" >&2
+    return "0"
+  fi
+
+  echo "${msgSymbol} ${msgPrefix}: ${msgText}" >&1
+  return "0"
 }
 
 

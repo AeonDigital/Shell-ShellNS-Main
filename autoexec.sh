@@ -27,16 +27,16 @@ SHELLNS_TMP_UNSET_ON_END+=("sparkFN_unsetOnEnd")
 
 
 #
-# Print an error message to the standard output.
+# Print an error message to the stderr.
 #
 # @param string $1
 # Message to print.
 #
 # @return string
-sparFN_messageError() {
-  echo "[ x ] Error: ${1}"
+sparkFN_messageError() {
+  echo "[ x ] Error: ${1}" >&2
 }
-SHELLNS_TMP_UNSET_ON_END+=("sparFN_messageError")
+SHELLNS_TMP_UNSET_ON_END+=("sparkFN_messageError")
 
 
 
@@ -51,14 +51,14 @@ sparkFN_loadScripts() {
   local arrayName="${1}"
   
   if [ "${arrayName}" == "" ] || ! [[ "$(declare -p "${arrayName}" 2> /dev/null)" == "declare -a"* ]]; then
-    sparFN_messageError "Then given array not exists; Array : '${arrayName}'"
+    sparkFN_messageError "Then given array not exists; Array : '${arrayName}'"
     return "1"
   fi
 
 
   local -n arrayObject="${arrayName}"
   if [ "${#arrayObject[@]}" == "0" ]; then
-    sparFN_messageError "Then given array is empty; Array : '${arrayName}'"
+    sparkFN_messageError "Then given array is empty; Array : '${arrayName}'"
     return "1"
   fi
 
@@ -66,14 +66,14 @@ sparkFN_loadScripts() {
   local scriptPath=""  
   for scriptPath in "${arrayObject[@]}"; do
     if [ ! -f "${scriptPath}" ] || [ "${scriptPath: -3}" != ".sh" ]; then
-      sparFN_messageError "Script not found or not a '.sh' file; Path : '${scriptPath}'"
+      sparkFN_messageError "Script not found or not a '.sh' file; Path : '${scriptPath}'"
       return "1"
     fi
   done
 
 
   for scriptPath in "${arrayObject[@]}"; do
-      . "${scriptPath}"
+    . "${scriptPath}"
   done
   
   return "0"
@@ -85,7 +85,7 @@ SHELLNS_TMP_UNSET_ON_END+=("sparkFN_loadScripts")
 #
 # Interrupt if ShellNS has been loaded
 if [ "${SHELLNS_MAIN_LOAD_CONTROL}" != "" ]; then
-  sparFN_messageError "ShellNS is already loaded!"
+  sparkFN_messageError "ShellNS is already loaded!"
   sparkFN_unsetOnEnd
   return "1"
 fi
@@ -110,9 +110,9 @@ declare -a SHELLNS_TMP_BOOT_SCRIPTS=()
 SHELLNS_TMP_UNSET_ON_END+=("SHELLNS_TMP_BOOT_SCRIPTS")
 
 SHELLNS_TMP_BOOT_SCRIPTS+=("${SHELLNS_TMP_CURRENT_DIR_PATH}/config.sh")
-SHELLNS_TMP_BOOT_SCRIPTS+=("${SHELLNS_TMP_CURRENT_DIR_PATH}/bashKit/00_load.sh")
+SHELLNS_TMP_BOOT_SCRIPTS+=("${SHELLNS_TMP_CURRENT_DIR_PATH}/bashKit/load.sh")
 
-for it in $(find "${SHELLNS_TMP_CURRENT_DIR_PATH}/src/boot" -type f -name "*.sh"); do
+for it in $(find "${SHELLNS_TMP_CURRENT_DIR_PATH}/src/boot" -type f -name "*.sh" | sort); do
   SHELLNS_TMP_BOOT_SCRIPTS+=("${it}")
 done
 

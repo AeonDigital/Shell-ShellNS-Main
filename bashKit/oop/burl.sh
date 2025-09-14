@@ -3,6 +3,43 @@
 #
 #
 declare -ga OOP_BURL_ALLOWED_HTTP_VERBS=("GET" "POST" "PUT" "PATCH" "DELETE" "HEAD" "OPTIONS" "CONNECT" "TRACE")
+# 
+# Default value for 'user-agent' header
+declare -g OOP_BURL_DEFAULT_USER_AGENT="bash-script"
+
+
+
+
+#
+# Instance constructor.
+#
+# @param string $1
+# Name of associative array with the current object values.
+#
+# @return status+string
+burlConstructor() {
+  local -n assocProp="${1}"; shift;
+  local typeObject="${assocProp["_runtimeTypeObject"]}"
+  local typeInstanceName="${assocProp["_runtimeTypeInstanceName"]}"
+
+  burlConstructor_resetInitialHeaders "${typeInstanceName}"
+
+  return "0"
+}
+#
+# Set the inicial headers with its default values.
+#
+# @param string $1
+# Name of the target instance.
+#
+# @return status
+burlConstructor_resetInitialHeaders() {
+  local typeInstanceName="${1}"
+
+  burl "${typeInstanceName}" set header set "user-agent" "${OOP_BURL_DEFAULT_USER_AGENT}"
+  burl "${typeInstanceName}" set header set "accept" '*/*'
+  burl "${typeInstanceName}" set header set "connection" "close"
+}
 
 
 
@@ -29,8 +66,8 @@ burlSetHeader() {
   local regTypeInstanceMemberName="${assocProp[_runtimeRegTypeInstanceMemberName]}"
   local -n tmpAssoc="${regTypeInstanceMemberName}"
 
-  local strSetMode="${1}"
-  local strKeyName="${2}"
+  local strSetMode="${1,,}"
+  local strKeyName="${2,,}" # to lower; to keep assoc case insensitive
   local strKeyValue="${3}"
 
   case "${strSetMode}" in
@@ -52,6 +89,7 @@ burlSetHeader() {
       for it in "${!tmpAssoc[@]}"; do
         unset tmpAssoc["${it}"]
       done
+      burlConstructor_resetInitialHeaders "${assocProp[_runtimeTypeInstanceName]}"
       ;;
 
     *)
@@ -61,6 +99,36 @@ burlSetHeader() {
   esac
 
   return "0"
+}
+#
+# Get header value.
+#
+# @param string $1
+# Name of associative array with the current object values.
+#
+# @param string $2
+# Assoc key name.
+#
+# @return status+string
+burlGetHeader() {
+  local -n assocProp="${1}"; shift;
+  local regTypeInstanceMemberName="${assocProp[_runtimeRegTypeInstanceMemberName]}"
+  local typeInstanceMemberName="${assocProp[_runtimeTypeInstanceMemberName]}"
+  local -n tmpAssoc="${regTypeInstanceMemberName}"
+
+  local originalSearchKey="${1}"
+
+  local it=""
+  local key="${originalSearchKey,,}"
+  for it in "${!tmpAssoc[@]}"; do
+    if [ "${it}" == "${key}" ]; then
+      echo "${tmpAssoc[${it}]}"
+      return "0"
+    fi
+  done
+
+  messageError "Invalid ${originalSearchKey} key | '${typeInstanceMemberName}.${originalSearchKey}'"
+  return "1"
 }
 #
 # Print all headers in HTTP expected format.
@@ -74,10 +142,11 @@ burlPrintHeaders() {
   local key=""
   local value=""
   local httpHeaders=""
-
+  
   local sortedKeys=($(for it in "${!tmpAssoc[@]}"; do echo "${it}"; done | sort))
   for key in "${sortedKeys[@]}"; do
     value="${tmpAssoc[${key}]}"
+    key=$(stringCapitalizeFirst "${key}" "-")
     httpHeaders+="${key}: ${value}\r\n"
   done
   
@@ -836,11 +905,11 @@ burlRequest() {
 
 #
 # Definition of type
-objectTypeCreate burl
+objectTypeCreate burl burlConstructor
 
 #
 # Properties
-objectTypeSetProperty burl assoc header "" burlSetHeader
+objectTypeSetProperty burl assoc header "" burlSetHeader burlGetHeader
 objectTypeSetProperty burl string verb "GET" burlSetVerb
 objectTypeSetProperty burl string protocol "http" burlSetProtocol
 objectTypeSetProperty burl string protocolVersion "1.1" burlSetProtocolVersion

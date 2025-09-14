@@ -134,6 +134,66 @@ varDump() {
 
 
 
+
+
+#
+# Checks if a given value is a valid boolean (1 or 0).
+#
+# @param string $1
+# Value to be checked.
+#
+# return status
+varIsBool() {
+  local boolValue="${1}"
+
+  if [ "${boolValue}" != "0" ] && [ "${boolValue}" != "1" ]; then
+    return "1"
+  fi
+
+  return "0"
+}
+
+
+
+#
+# Checks if a given value is a valid integer.
+#
+# @param string $1
+# Value to be checked.
+#
+# return status
+varIsInt() {
+  local intValue="${1}"
+
+  if ! [[ "${intValue}" =~ ^-?[0-9]+$ ]]; then
+    return "1"
+  fi
+
+  return "0"
+}
+
+
+
+#
+# Checks if a given value is a valid float.
+#
+# @param string $1
+# Value to be checked.
+#
+# return status
+varIsFloat() {
+  local floatValue="${1}"
+
+  if ! [[ "${floatValue}" =~ ^-?[0-9]*\.?[0-9]+$ ]]; then
+    return "1"
+  fi
+
+  return "0"
+}
+
+
+
+
 #
 # Checks if an array exists.
 #
@@ -296,13 +356,13 @@ varAssocClear() {
 
 
 #
-# Checks if a function exists.
+# Checks if the given name is a function.
 #
 # @param string $1
 # Name of the function.
 #
 # return status
-functionExists() {
+varIsFunction() {
   local functionName="${1}"
 
   if [ "${functionName}" == "" ] || ! declare -F "${functionName}" &>/dev/null; then
@@ -315,58 +375,207 @@ functionExists() {
 
 
 
-
 #
-# Checks if a given value is a valid boolean (1 or 0).
+# Checks if the given name is a symbolic link.
 #
 # @param string $1
-# Value to be checked.
+# Full symbolic link name.
 #
 # return status
-varIsBool() {
-  local boolValue="${1}"
+varIsSymolicLink() {
+  local fullSymnbolicLink="${1}"
 
-  if [ "${boolValue}" != "0" ] && [ "${boolValue}" != "1" ]; then
+  if [ -L "${fullSymnbolicLink}" ]; then
+    return "0"
+  fi
+
+  return "1"
+}
+
+
+
+
+#
+# Checks if the given file name exists.
+#
+# @param string $1
+# Full file name.
+#
+# return status
+varIsFile() {
+  local fullFileName="${1}"
+
+  if [ ! -f "${fullFileName}" ]; then
     return "1"
   fi
 
   return "0"
 }
-
-
-
 #
-# Checks if a given value is a valid integer.
+# Checks if the given file name exists and is empty.
 #
 # @param string $1
-# Value to be checked.
+# Full file name.
 #
 # return status
-varIsInt() {
-  local intValue="${1}"
+varIsFileEmpty() {
+  local fullFileName="${1}"
 
-  if ! [[ "${intValue}" =~ ^-?[0-9]+$ ]]; then
+  if varIsFile "${fullFileName}" && [ ! -s "${fullFileName}" ]; then 
+    return "0"
+  fi
+
+  return "1"
+}
+#
+# Checks if the given file name exists and is not empty.
+#
+# @param string $1
+# Full file name.
+#
+# return status
+varIsFileNotEmpty() {
+  local fullFileName="${1}"
+
+  if varIsFile "${fullFileName}" && [ -s "${fullFileName}" ]; then 
+    return "0"
+  fi
+
+  return "1"
+}
+
+
+
+
+#
+# Checks if the given name is a directory.
+#
+# @param string $1
+# Full directory name.
+#
+# return status
+varIsDir() {
+  local fullDirName="${1}"
+
+  if [ ! -d "${fullDirName}" ]; then
     return "1"
   fi
 
   return "0"
 }
-
-
-
 #
-# Checks if a given value is a valid float.
+# Checks if the given directory name exists and is empty.
 #
 # @param string $1
-# Value to be checked.
+# Full directory name.
 #
 # return status
-varIsFloat() {
-  local floatValue="${1}"
+varIsDirEmpty() {
+  local fullDirName="${1}"
 
-  if ! [[ "${floatValue}" =~ ^-?[0-9]*\.?[0-9]+$ ]]; then
-    return "1"
+  if varIsDir "${fullDirName}" && [ -z "$(ls -A "${fullDirName}")" ]; then 
+    return "0"
   fi
 
-  return "0"
+  return "1"
+}
+#
+# Checks if the given directory name exists and is not empty.
+#
+# @param string $1
+# Full directory name.
+#
+# return status
+varIsDirNotEmpty() {
+  local fullDirName="${1}"
+
+  if varIsDir "${fullDirName}" && [ ! -z "$(ls -A "${fullDirName}")" ]; then 
+    return "0"
+  fi
+
+  return "1"
+}
+
+
+
+
+#
+# Checks if the given file/dir name exists and is readable by you.
+#
+# @param string $1
+# Full file/dir name.
+#
+# return status
+varIsResourceReadable() {
+  local fullResourceName="${1}"
+
+  if [ -e "${fullResourceName}" ] && [ -r "${fullResourceName}" ]; then 
+    return "0"
+  fi
+
+  return "1"
+}
+#
+# Checks if the given file/dir name exists and is writable by you.
+#
+# @param string $1
+# Full file/dir name.
+#
+# return status
+varIsResourceWritable() {
+  local fullResourceName="${1}"
+
+  if [ -e "${fullResourceName}" ] && [ -w "${fullResourceName}" ]; then 
+    return "0"
+  fi
+
+  return "1"
+}
+#
+# Checks if the given file/dir name exists and is executable by you.
+#
+# @param string $1
+# Full file/dir name.
+#
+# return status
+varIsResourceExecutable() {
+  local fullResourceName="${1}"
+
+  if [ -a "${fullResourceName}" ] && [ -x "${fullResourceName}" ]; then 
+    return "0"
+  fi
+
+  return "1"
+}
+#
+# Checks if the given file/dir name exists and is owned by the current user.
+#
+# @param string $1
+# Full file/dir name.
+#
+# return status
+varIsResourceOwnedByCurrentUser() {
+  local fullResourceName="${1}"
+
+  if [ -a "${fullResourceName}" ] && [ -O "${fullResourceName}" ]; then 
+    return "0"
+  fi
+
+  return "1"
+}
+#
+# Checks if the given file/dir name exists and is owned by the current user group.
+#
+# @param string $1
+# Full file/dir name.
+#
+# return status
+varIsResourceOwnedByCurrentGroup() {
+  local fullResourceName="${1}"
+
+  if [ -a "${fullResourceName}" ] && [ -G "${fullResourceName}" ]; then 
+    return "0"
+  fi
+
+  return "1"
 }

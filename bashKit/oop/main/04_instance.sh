@@ -85,6 +85,16 @@ objectInstanceNew() {
   done
 
 
+
+  local typeInstanceContructor="${SHELLNS_MAIN_OBJECT_TYPE_CONSTRUCTORS["${typeObject}"]}"
+  if [ "${typeInstanceContructor}" != "" ]; then
+    local -A objectInstanceExecArgs
+    objectInstanceFillInternalMethodMainArg "${typeObject}" "${typeInstanceName}" "" "objectInstanceExecArgs"
+    
+    $typeInstanceContructor  "objectInstanceExecArgs" "$@"
+  fi
+
+
   return "0"
 }
 
@@ -271,9 +281,9 @@ objectInstanceAccess() {
 
     local -A objectInstanceExecArgs
     objectInstanceFillInternalMethodMainArg "${typeObject}" "${typeInstanceName}" "${typeInstanceMemberName}" "objectInstanceExecArgs"
-    
+
     if [ "${currentPropType}" == "array" ] || [ "${currentPropType}" == "assoc" ]; then
-      objectInstanceExecArgs["regTypeInstanceMemberName"]+="_${currentPropType}"
+      objectInstanceExecArgs["_runtimeRegTypeInstanceMemberName"]="${typeObject}_${typeInstanceName}_${typeInstanceMemberName}_${currentPropType}"
     fi
     
     $currentInstanceMemberValue  "objectInstanceExecArgs" "$@"
