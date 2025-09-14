@@ -31,7 +31,7 @@ shellNS_main_extract_nsMappings() {
   local str_FUNCTION_TO_MANUAL=""
   local str_NAMESPACE_TO_FUNCTION=""
 
-  for srcScriptPath in $(find "${strFunctionsDirPath}" -type f -name "*.sh" | sort); do
+  for srcScriptPath in $(find "${strFunctionsDirPath}" -type f -name "*.sh" | stringSort $'\n'); do
     
     IFS=$'\n'
     while read -r strRawLine || [ -n "${strRawLine}" ]; do
