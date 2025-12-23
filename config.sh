@@ -1,41 +1,6 @@
 #!/usr/bin/env bash
 
 #
-# Main SHELLNS configurations
-
-
-#
-# Path to the main directory of the SHELLNS packages if it is installed
-unset SHELLNS_MAIN_DIR_PATH
-declare -g SHELLNS_MAIN_DIR_PATH="${XDG_DATA_HOME}/shellns"
-if [ "${XDG_DATA_HOME}" == "" ]; then
-  declare -g SHELLNS_MAIN_DIR_PATH="${HOME}/.shellns"
-fi
-
-
-#
-# Register the main interface locale.
-if [ "${SHELLNS_MAIN_INTERFACE_LOCALE}" == "" ]; then
-  declare -g SHELLNS_MAIN_INTERFACE_LOCALE="en-us"
-fi
-
-#
-# Start the associative array that controls the external dependencies 
-# of this package. Every command that´s not a bash native must be in this list
-# Ex: curl; wget; grep... 
-unset SHELLNS_MAIN_EXTERNAL_DEPENDENCIES
-declare -gA SHELLNS_MAIN_EXTERNAL_DEPENDENCIES
-
-
-
-
-
-
-
-
-
-
-#
 # Package Config
 
 #
@@ -50,6 +15,14 @@ declare -gA SHELLNS_MAIN_PACKAGE_LOAD_STATUS
 unset SHELLNS_MAIN_DEPENDENCIES_REPO_LIST
 declare -gA SHELLNS_MAIN_DEPENDENCIES_REPO_LIST
 
+
+
+#
+# Start the associative array that controls the external dependencies 
+# of this package. Every command that´s not a bash native must be in this list
+# Ex: curl; wget; grep... 
+unset SHELLNS_MAIN_EXTERNAL_DEPENDENCIES
+declare -gA SHELLNS_MAIN_EXTERNAL_DEPENDENCIES
 
 
 #

@@ -51,14 +51,14 @@ sparkFN_loadScripts() {
   local arrayName="${1}"
   
   if [ "${arrayName}" == "" ] || ! [[ "$(declare -p "${arrayName}" 2> /dev/null)" == "declare -a"* ]]; then
-    sparkFN_messageError "Then given array not exists; Array : '${arrayName}'"
+    sparkFN_messageError "The given array not exists; Array : '${arrayName}'"
     return "1"
   fi
 
 
   local -n arrayObject="${arrayName}"
   if [ "${#arrayObject[@]}" == "0" ]; then
-    sparkFN_messageError "Then given array is empty; Array : '${arrayName}'"
+    sparkFN_messageError "Thn given array is empty; Array : '${arrayName}'"
     return "1"
   fi
 
