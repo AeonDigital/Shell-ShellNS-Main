@@ -12,13 +12,13 @@ shellNS_main_extract_rawManuals() {
     rm -rf "${strDefaultManualDir}"
 
     if [ -d "${strDefaultManualDir}" ]; then
-      shellNS_main_boot_dialog "error" "Error on delete current 'src-manuals/en-us' directory."
+      messageError "Error on delete current 'src-manuals/en-us' directory."
     fi
   fi
 
   mkdir -p "${strDefaultManualDir}"
   if [ ! -d "${strDefaultManualDir}" ]; then
-    shellNS_main_boot_dialog "error" "Error on create 'src-manuals/en-us' directory."
+    messageError "Error on create 'src-manuals/en-us' directory."
     return 1
   fi
   
@@ -67,7 +67,7 @@ shellNS_main_extract_rawManuals() {
       mkdir -p "${strTgtDirPath}"
     fi
     if [ ! -d "${strTgtDirPath}" ]; then
-      shellNS_main_boot_dialog "error" "Error on create '${strTgtDirPath}' directory."
+      messageError "Error on create '${strTgtDirPath}' directory."
       return 1
     fi
     echo -n "${strTgtContent}" > "${strTgtFilePath/.sh/.man}"

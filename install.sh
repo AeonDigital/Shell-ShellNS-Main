@@ -315,44 +315,140 @@ if [ "${SHELLNS_INSTALL_STATUS}" == "0" ]; then
 			#
 			# Path to the main directory of the SHELLNS packages
 			unset SHELLNS_MAIN_DIR_PATH
-			declare -g SHELLNS_MAIN_DIR_PATH="$(tmpPath=$(dirname "${BASH_SOURCE[0]}"); realpath "${tmpPath}")"
+			declare -gr SHELLNS_MAIN_DIR_PATH="$(tmpPath=$(dirname "${BASH_SOURCE[0]}"); realpath "${tmpPath}")"
 
+			#
+			# Start the associative array that controls the external dependencies 
+			# of this package. Every command that's not a bash native must be in this list
+			# Ex: curl; wget; grep... 
+			unset SHELLNS_MAIN_EXTERNAL_DEPENDENCY
+			declare -gA SHELLNS_MAIN_EXTERNAL_DEPENDENCY
+
+			#
+			# Create list of dependencie packages to be loaded.
+			unset SHELLNS_MAIN_PACKAGE_DEPENDENCY
+			declare -gA SHELLNS_MAIN_PACKAGE_DEPENDENCY
+
+			#
+			# Start the associative array that controls the load status of each package.
+			unset SHELLNS_MAIN_PACKAGE_LOAD_STATUS
+			declare -gA SHELLNS_MAIN_PACKAGE_LOAD_STATUS
 
 			#
 			# Primary interface locale.
 			declare -g SHELLNS_MAIN_INTERFACE_LOCALE="en-us"
 
 
-			declare -ga arrRepo=()
-			arrRepo+=("Shell-BashKit")
-			arrRepo+=("Shell-BashKit-OOP")
-			arrRepo+=("Shell-BashKit-Shrink")
-			#arrRepo+=("Shell-ShellNS-Main")
 
-			declare -g it=""
-			declare -g ok="1"
-			for it in "${arrRepo[@]}"; do
-			  if [[ ! -d "${SHELLNS_MAIN_DIR_PATH}/${it}" ]]; then
+			#
+			# Inserts a new entry into the external dependency list.
+			#
+			# @param string $1
+			# Name of the command/application.
+			#
+			# @return status
+			shellNS_main_register_external_dependency() {
+			  local strCommandName="${1}"
+			  if [ "${strCommandName}" == "" ]; then
 			    echo ""
-			    echo -e "[ err ] Repo '${it}' not found."
-			    ok="0"
+			    echo -e "[ err ] Invalid command name! [ '' ]"
+			    return "1"
 			  fi
-			done
 
-			if [ "${ok}" == "1" ]; then
-			  for it in "${arrRepo[@]}"; do
-			    . "${SHELLNS_MAIN_DIR_PATH}/${it}/exec.sh"
-			  done
-			fi
+			  SHELLNS_MAIN_EXTERNAL_DEPENDENCY["${strCommandName}"]="-"
+			}
+
 
 
 			#
-			# Load configuration
-			. "${SHELLNS_MAIN_DIR_PATH}/config.sh"
+			# Inserts a new entry into the package dependency list.
+			#
+			# @param string $1
+			# URL to the Git repository of the package.
+			#
+			# @return status
+			shellNS_main_register_package_dependency() {
+			  local strPkgRepoURL="${1%.git}"
+			  if [ "${strPkgRepoURL}" == "" ]; then
+			    echo ""
+			    echo -e "[ err ] Invalid package repository URL! [ '' ]"
+			    return "1"
+			  fi
 
-			unset arrRepo
-			unset it
-			unset ok
+			  local -a arrPkgURLParts=()
+			  IFS='/' read -ra arrPkgURLParts <<< "${strPkgRepoURL}"
+
+			  local strRepo="${arrPkgURLParts[-1]}"
+			  local strVendor="${arrPkgURLParts[-2]}"
+			  local strPkgKey="${strVendor}_${strRepo}"
+
+			  if [[ ! -d "${SHELLNS_MAIN_DIR_PATH}/${strRepo}" ]]; then
+			    echo ""
+			    echo -e "[ err ] Repo '${strRepo}' not found."
+			    return "1"
+			  fi
+
+			  if [[ ! -f "${SHELLNS_MAIN_DIR_PATH}/${strRepo}/exec.sh" ]]; then
+			    echo ""
+			    echo -e "[ err ] File 'exec.sh' not found in '${strRepo}' repository."
+			    return "1"
+			  fi
+
+			  SHELLNS_MAIN_PACKAGE_DEPENDENCY["${strPkgKey}"]="${strPkgRepoURL}"
+			}
+
+
+
+			#
+			# Load all registered packages
+			#
+			# @return void
+			shellNS_main_prepare_packages_to_load() {
+			  #
+			  # Register all packages to be loaded.
+			  . "${SHELLNS_MAIN_DIR_PATH}/packages.sh"
+
+			  local -a arrPkgURLParts=()
+
+			  local strPkgKey=""
+			  for strPkgKey in "${!SHELLNS_MAIN_PACKAGE_DEPENDENCY[@]}"; do
+			    arrPkgURLParts=()
+			    IFS='/' read -ra arrPkgURLParts <<< "${SHELLNS_MAIN_PACKAGE_DEPENDENCY[${strPkgKey}]}"
+
+			    script_retrieveShellNSPackageFiles "${SHELLNS_MAIN_DIR_PATH}/${arrPkgURLParts[-1]}"
+			  done
+
+
+			  script_loadFromArray "SHELLNS_MAIN_TMP_PATH_TO_CONFIG"
+			  script_loadFromArray "SHELLNS_MAIN_TMP_PATH_TO_SCRIPT_CONFIG"
+			  script_loadFromArray "SHELLNS_MAIN_TMP_PATH_TO_SCRIPT_FILES"
+			  script_loadFromArray "SHELLNS_MAIN_TMP_PATH_TO_LOCALE_FILES"
+			  script_loadFromArray "SHELLNS_MAIN_TMP_PATH_TO_NS_FILES"
+			  script_loadFromArray "SHELLNS_MAIN_TMP_PATH_TO_AUTOEXEC_FILES"
+
+
+			  #
+			  # Load custom configuration
+			  . "${SHELLNS_MAIN_DIR_PATH}/config.sh"
+			}
+
+			#
+			# Load registered packages
+			declare -ga SHELLNS_MAIN_TMP_PATH_TO_CONFIG=()
+			declare -ga SHELLNS_MAIN_TMP_PATH_TO_SCRIPT_CONFIG=()
+			declare -ga SHELLNS_MAIN_TMP_PATH_TO_SCRIPT_FILES=()
+			declare -ga SHELLNS_MAIN_TMP_PATH_TO_LOCALE_FILES=()
+			declare -ga SHELLNS_MAIN_TMP_PATH_TO_NS_FILES=()
+			declare -ga SHELLNS_MAIN_TMP_PATH_TO_AUTOEXEC_FILES=()
+			
+			shellNS_main_prepare_packages_to_load
+
+			unset SHELLNS_MAIN_TMP_PATH_TO_CONFIG
+			unset SHELLNS_MAIN_TMP_PATH_TO_SCRIPT_CONFIG
+			unset SHELLNS_MAIN_TMP_PATH_TO_SCRIPT_FILES
+			unset SHELLNS_MAIN_TMP_PATH_TO_LOCALE_FILES
+			unset SHELLNS_MAIN_TMP_PATH_TO_NS_FILES
+			unset SHELLNS_MAIN_TMP_PATH_TO_AUTOEXEC_FILES
 		EOF
 
 
@@ -366,6 +462,43 @@ if [ "${SHELLNS_INSTALL_STATUS}" == "0" ]; then
 
 
 
+
+
+    local strPackageLoadScript=""
+    read -r -d '' strPackageLoadScript <<-"EOF"
+			#!/usr/bin/env bash
+
+			#
+			# [[ MAIN EXTERNAL COMMANDS ]]
+			shellNS_main_register_external_dependency "curl"
+			shellNS_main_register_external_dependency "git"
+
+
+
+			#
+			# Use this file to define all packages to be loaded.
+			# [[ BASHKIT ]]
+			shellNS_main_register_package_dependency "https://github.com/AeonDigital/Shell-BashKit"
+			shellNS_main_register_package_dependency "https://github.com/AeonDigital/Shell-BashKit-OOP"
+			shellNS_main_register_package_dependency "https://github.com/AeonDigital/Shell-BashKit-Shrink"
+
+			#
+			# [[ SHELLNS MAIN ]]
+			shellNS_main_register_package_dependency "https://github.com/AeonDigital/Shell-ShellNS-Main"
+		EOF
+
+
+    echo "${strPackageLoadScript}" > "${SHELLNS_INSTALL_DIRECTORY}/packages.sh"
+    if [ "$?" != "0" ] || [ ! -f "${SHELLNS_INSTALL_DIRECTORY}/packages.sh" ]; then
+      messageError "Fail on create script '${SHELLNS_INSTALL_DIRECTORY}/packages.sh'!\nPlease, check and try again."
+
+      SHELLNS_INSTALL_STATUS="51"
+      return "${SHELLNS_INSTALL_STATUS}"
+    fi
+    
+    
+    
+    
     local strConfigScript=""
     read -r -d '' strConfigScript <<-"EOF"
 			#!/usr/bin/env bash
@@ -379,7 +512,7 @@ if [ "${SHELLNS_INSTALL_STATUS}" == "0" ]; then
 			# [[ ShellNS-Main ]]
 			#
 			# Interface locale.
-			SHELLNS_MAIN_INTERFACE_LOCALE="en-us"
+			declare -gr SHELLNS_MAIN_INTERFACE_LOCALE="en-us"
 		EOF
 
 
