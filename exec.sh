@@ -58,6 +58,53 @@ execBashKit() {
       . "${shrinkFile}"
       shrinkPackage "${currentDirectoryPath}/src" "${currentDirectoryPath}/package-${projectName,,}.sh" "${strShrinkHeader}"
       ;;
+
+    prepare-install)
+      loadWithIndentAndScapes() {
+        local pathFile="${1}"
+        local codeNL=$'\n'
+        local codeIdent=$'\t\t\t'
+        local strLine=""
+        local strContent=""
+        
+        while IFS= read -r strLine; do
+          if [ "${strLine}" != "" ]; then
+            strLine="${codeIdent}${strLine}"
+          fi
+          strContent+="${strLine}${codeNL}"
+        done < "${pathFile}"
+
+        strContent="${strContent//\&/codeAMP}"
+        strContent="${strContent//\$/codeDOLARSIGN}"
+        strContent="${strContent//\\/codeSLASH}"
+
+        echo "${strContent}"
+      }
+      replaceScapes() {
+        local strContent="${1}"
+
+        strContent="${strContent//codeDOLARSIGN/$}"
+        strContent="${strContent//codeSLASH/\\}"
+        strContent="${strContent//codeAMP/\&}"
+
+        echo "${strContent}"
+
+      }
+
+      local codeIdent=$'\t\t\t'
+      local strTemplateInstall=$(< "${currentDirectoryPath}/install/template_install.sh")
+      local strTemplateStart=$(loadWithIndentAndScapes "${currentDirectoryPath}/install/template_start.sh")
+      local strTemplatePackage=$(loadWithIndentAndScapes "${currentDirectoryPath}/install/template_package.sh")
+      local strTemplateConfig=$(loadWithIndentAndScapes "${currentDirectoryPath}/install/template_config.sh")
+
+
+      strTemplateInstall="${strTemplateInstall/${codeIdent}\[\[\ template_start\.sh\ \]\]/${strTemplateStart}}"
+      strTemplateInstall="${strTemplateInstall//\[\[\ template_package\.sh\ \]\]/${strTemplatePackage}}"
+      strTemplateInstall="${strTemplateInstall//\[\[\ template_config\.sh\ \]\]/${strTemplateConfig}}"
+      strTemplateInstall=$(replaceScapes "${strTemplateInstall}")
+
+      echo "${strTemplateInstall}" > "${currentDirectoryPath}/install.sh"
+      ;;
   esac
 }
 execBashKit "${1}" "${2}"
